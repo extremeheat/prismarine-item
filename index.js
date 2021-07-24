@@ -1,6 +1,7 @@
 const nbt = require('prismarine-nbt')
 function loader (version) {
   const mcData = require('minecraft-data')(version)
+  let nextUniqueId = 1000
   class Item {
     constructor (type, count, metadata, nbt) {
       if (type == null) return
@@ -15,7 +16,7 @@ function loader (version) {
       this.metadata = metadata == null ? 0 : metadata
       this.nbt = nbt || null
 
-      const itemEnum = mcData.findItemOrBlockById(type)
+      const itemEnum = mcData.version.type === 'pc' ? mcData.findItemOrBlockById(type) : mcData.version.type === 'bedrock' ? mcData.findItemById(type) : null
       if (itemEnum) {
         this.name = itemEnum.name
         this.displayName = itemEnum.displayName
@@ -25,11 +26,17 @@ function loader (version) {
           }
         }
         this.stackSize = itemEnum.stackSize
+        this.blockId = itemEnum.blockId // bedrock
       } else {
         this.name = 'unknown'
         this.displayName = 'unknown'
         this.stackSize = 1
       }
+
+      // On bedrock, the `type` is an ID assigned at runtime by the server.
+      // `uniqueId` is a unique ID per every item instance used for inventory tracking purposes
+      // See prismarine-windows/minecraft-inventory-gui for usage
+      this.uniqueId = nextUniqueId++
     }
 
     static equal (item1, item2, matchStackSize = true) {
@@ -80,6 +87,35 @@ function loader (version) {
         if (item.blockId === -1) return null
         return new Item(item.blockId, item.itemCount, item.itemDamage, item.nbtData)
       }
+    }
+
+    static toBedrock () {
+      if (mcData.version['>=']('1.16.220')) {
+        return {
+          network_id: this.type,
+          count: this.count,
+          metadata: this.metadata,
+          has_stack_id: this.uniqueId > 0,
+          stack_id: this.uniqueId,
+          extra: {
+            has_nbt: !!this.nbt,
+            nbt: { version: 1, nbt: this.nbt },
+            can_place_on: [],
+            can_destroy: [],
+            blocking_tick: 0
+          }
+        }
+      }
+    }
+
+    static fromBedrock (obj) {
+      if (mcData.version['>=']('1.16.220')) {
+        return new Item(obj.network_id, obj.count, obj.metadata, obj.extra.nbt)
+      }
+    }
+
+    clone () {
+      return Object.assign(Object.create(this.prototype), JSON.parse(JSON.stringify(this)))
     }
 
     get customName () {
