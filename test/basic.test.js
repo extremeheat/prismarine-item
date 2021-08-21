@@ -1,5 +1,16 @@
 /* eslint-env jest */
 
+test('bedrock 1.17.10', () => {
+  const Item = require('prismarine-item')('bedrock_1.17.10')
+  const bedrockItem = new Item('apple', 1)
+  expect(bedrockItem.name).toBe('apple')
+  const cloned = bedrockItem.clone()
+  console.log(bedrockItem, cloned)
+  const bed = bedrockItem.toBedrock()
+  console.log(bed, Item.fromBedrock(bed))
+})
+return
+
 describe('test based on examples', () => {
   describe('1.8 iron shovel', () => {
     const Item = require('prismarine-item')('1.8')

@@ -20,7 +20,7 @@
   "devDependencies": {
     "@types/node": "^16.0.0",
     "jest": "^27.0.1",
-    "minecraft-data": "^2.79.0",
+    "minecraft-data": "extremeheat/minecraft-data#bedrock",
     "standard": "^16.0.1",
     "prismarine-item": "file:."
   },

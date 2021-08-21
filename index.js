@@ -15,8 +15,17 @@ function loader (version) {
       this.count = count
       this.metadata = metadata == null ? 0 : metadata
       this.nbt = nbt || null
-
-      const itemEnum = mcData.version.type === 'pc' ? mcData.findItemOrBlockById(type) : mcData.version.type === 'bedrock' ? mcData.findItemById(type) : null
+      let itemEnum
+      if (mcData.version.type === 'pc') {
+        itemEnum = mcData.findItemOrBlockById(type)
+      } else if (mcData.version.type === 'bedrock') {
+        if (typeof type === 'number') {
+          itemEnum = mcData.findItemById(type)
+        } else {
+          itemEnum = mcData.itemsByName[type]
+          type = itemEnum.id
+        }
+      }
       if (itemEnum) {
         this.name = itemEnum.name
         this.displayName = itemEnum.displayName
@@ -89,12 +98,13 @@ function loader (version) {
       }
     }
 
-    static toBedrock () {
+    toBedrock () {
       if (mcData.version['>=']('1.16.220')) {
         return {
           network_id: this.type,
           count: this.count,
           metadata: this.metadata,
+          block_runtime_id: this.blockId,
           has_stack_id: this.uniqueId > 0,
           stack_id: this.uniqueId,
           extra: {
@@ -115,7 +125,7 @@ function loader (version) {
     }
 
     clone () {
-      return Object.assign(Object.create(this.prototype), JSON.parse(JSON.stringify(this)))
+      return Object.assign(Object.create(this), JSON.parse(JSON.stringify(this)))
     }
 
     get customName () {
