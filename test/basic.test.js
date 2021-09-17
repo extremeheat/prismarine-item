@@ -37,7 +37,7 @@ describe('test based on examples', () => {
     const ironShovelItem = new Item(472, 1)
 
     test('constructor makes item correctly', () => {
-      const expectedObj = { count: 1, displayName: 'Iron Shovel', metadata: 0, name: 'iron_shovel', nbt: null, stackSize: 64, type: 472 }
+      const expectedObj = { count: 1, displayName: 'Iron Shovel', metadata: 0, name: 'iron_shovel', nbt: null, stackSize: 1, type: 472 }
       expect(JSON.parse(JSON.stringify(ironShovelItem))).toStrictEqual(expectedObj)
     })
 
@@ -49,7 +49,7 @@ describe('test based on examples', () => {
     test('use .fromNotch', () => {
       const toNotch = Item.toNotch(ironShovelItem)
       const fromNotch = Item.fromNotch(toNotch)
-      const expectedObj = { count: 1, displayName: 'Iron Shovel', metadata: 0, name: 'iron_shovel', nbt: null, stackSize: 64, type: 472 }
+      const expectedObj = { count: 1, displayName: 'Iron Shovel', metadata: 0, name: 'iron_shovel', nbt: null, stackSize: 1, type: 472 }
       expect(JSON.parse(JSON.stringify(fromNotch))).toStrictEqual(expectedObj)
     })
   })
