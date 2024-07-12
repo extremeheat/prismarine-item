@@ -77,8 +77,8 @@ function loader (registryOrVersion) {
       const hasNBT = item && item.nbt && Object.keys(item.nbt.value).length > 0
 
       if (registry.type === 'pc') {
-        if (registry.supportFeature('itemSerializationAllowsPresent')) {
-          if (item == null) return { present: false }
+        if (registry.supportFeature('itemSerializationAllowsPresent')) { // 1.13+
+          if (item == null) return { present: false, itemCount: 0 }
           return {
             present: true,
             itemId: item.type,
@@ -130,16 +130,13 @@ function loader (registryOrVersion) {
 
     static fromNotch (networkItem, stackId) {
       if (registry.type === 'pc') {
-        if (registry.supportFeature('itemSerializationWillOnlyUsePresent')) {
-          if (networkItem.present === false) return null
-          return new Item(networkItem.itemId, networkItem.itemCount, networkItem.nbtData, null, true)
-        } else if (registry.supportFeature('itemSerializationAllowsPresent')) {
-          if (networkItem.itemId === -1 || networkItem.present === false) return null
-          return new Item(networkItem.itemId, networkItem.itemCount, networkItem.nbtData, null, true)
-        } else if (registry.supportFeature('itemSerializationUsesBlockId')) {
-          if (networkItem.blockId === -1) return null
-          return new Item(networkItem.blockId, networkItem.itemCount, networkItem.itemDamage, networkItem.nbtData, null, true)
-        }
+        if (networkItem.blockId === -1) return null // 1.8 - 1.12 use this field to notate invalid itemID
+        // On 1.13+ the itemId or might be set as -1 for an invalid item, or a "present" field might be written to expliclty notate a null item
+        if (networkItem.itemId === -1) return null
+        if (networkItem.present === false) return null
+        if (registry.supportFeature('itemCountRepresentsItemExistance') && networkItem.itemCount <= 0) return null
+
+        return new Item(networkItem.blockId, networkItem.itemCount, networkItem.itemDamage, networkItem.nbtData, null, true)
       } else if (registry.type === 'bedrock') {
         if (networkItem.network_id === 0) return null
 
